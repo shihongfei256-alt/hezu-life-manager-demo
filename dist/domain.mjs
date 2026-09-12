@@ -2,102 +2,47 @@ export const uid=(prefix='id')=>`${prefix}_${Date.now().toString(36)}_${Math.ran
 export const yuan=cents=>(cents/100).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
 export const toCents=value=>Math.round(Number(value)*100);
 
-export function equalSplits(amountCents,memberIds){
-  if(!Number.isInteger(amountCents)||amountCents<1||!memberIds.length)throw new Error('分摊参数无效');
-  const base=Math.floor(amountCents/memberIds.length),remainder=amountCents-base*memberIds.length;
-  return memberIds.map((memberId,index)=>({memberId,amountCents:base+(index<remainder?1:0)}));
-}
+const asDate=value=>value instanceof Date?new Date(value):new Date(value);
+export function startOfDay(value=new Date()){const date=asDate(value);date.setHours(0,0,0,0);return date}
+export function endOfDay(value=new Date()){const date=asDate(value);date.setHours(23,59,59,999);return date}
+export function startOfWeek(value=new Date()){const date=startOfDay(value),offset=(date.getDay()+6)%7;date.setDate(date.getDate()-offset);return date}
+export function endOfWeek(value=new Date()){const date=startOfWeek(value);date.setDate(date.getDate()+6);return endOfDay(date)}
+export const isBetween=(value,start,end)=>{const time=asDate(value).getTime();return time>=asDate(start).getTime()&&time<=asDate(end).getTime()};
+export const isSameDay=(a,b=new Date())=>{const left=asDate(a),right=asDate(b);return left.getFullYear()===right.getFullYear()&&left.getMonth()===right.getMonth()&&left.getDate()===right.getDate()};
+export const isSameMonth=(a,b=new Date())=>{const left=asDate(a),right=asDate(b);return left.getFullYear()===right.getFullYear()&&left.getMonth()===right.getMonth()};
+export const isThisWeek=(value,reference=new Date())=>isBetween(value,startOfWeek(reference),endOfWeek(reference));
+export const monthKey=value=>{const date=asDate(value);return`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`};
+export function relativeDayLabel(value,reference=new Date()){const target=startOfDay(value),today=startOfDay(reference),days=Math.round((target-today)/864e5);if(days===0)return'今天';if(days===1)return'明天';if(days===-1)return'昨天';return days<0?`已逾期 ${Math.abs(days)} 天`:`${days} 天后`}
 
-export function weightedSplits(amountCents,memberIds,weights){
-  const values=memberIds.map(id=>Number(weights[id]||0));
-  const total=values.reduce((sum,n)=>sum+n,0);
-  if(total<=0)throw new Error('分摊权重必须大于 0');
-  const raw=values.map(n=>amountCents*n/total);
-  const floors=raw.map(Math.floor);
-  let remainder=amountCents-floors.reduce((sum,n)=>sum+n,0);
-  const order=raw.map((n,i)=>({i,f:n-floors[i]})).sort((a,b)=>b.f-a.f||a.i-b.i);
-  for(let i=0;i<remainder;i++)floors[order[i].i]++;
-  return memberIds.map((memberId,index)=>({memberId,amountCents:floors[index]}));
-}
+export function equalSplits(amountCents,memberIds){if(!Number.isInteger(amountCents)||amountCents<1||!memberIds.length)throw new Error('分摊参数无效');const base=Math.floor(amountCents/memberIds.length),remainder=amountCents-base*memberIds.length;return memberIds.map((memberId,index)=>({memberId,amountCents:base+(index<remainder?1:0)}))}
+export function weightedSplits(amountCents,memberIds,weights){const values=memberIds.map(id=>Number(weights[id]||0));if(values.some(value=>!Number.isFinite(value)||value<0))throw new Error('分摊权重不能为负数');const total=values.reduce((sum,n)=>sum+n,0);if(total<=0)throw new Error('分摊权重必须大于 0');const raw=values.map(n=>amountCents*n/total),floors=raw.map(Math.floor);let remainder=amountCents-floors.reduce((sum,n)=>sum+n,0);const order=raw.map((n,i)=>({i,f:n-floors[i]})).sort((a,b)=>b.f-a.f||a.i-b.i);for(let i=0;i<remainder;i++)floors[order[i].i]++;return memberIds.map((memberId,index)=>({memberId,amountCents:floors[index]}))}
+export function ratioSplits(amountCents,memberIds,ratios){const total=memberIds.reduce((sum,id)=>sum+Number(ratios[id]||0),0);if(Math.abs(total-100)>.001)throw new Error('比例之和必须等于 100%');return weightedSplits(amountCents,memberIds,ratios)}
+export function customAmountSplits(amountCents,memberIds,amounts){const splits=memberIds.map(memberId=>({memberId,amountCents:toCents(amounts[memberId]||0)}));if(splits.some(s=>s.amountCents<0)||splits.reduce((sum,s)=>sum+s.amountCents,0)!==amountCents)throw new Error('固定金额之和必须等于费用金额');return splits}
+export function buildSplits(amountCents,memberIds,mode,values={}){if(mode==='amount')return customAmountSplits(amountCents,memberIds,values);if(mode==='ratio')return ratioSplits(amountCents,memberIds,values);if(mode==='shares')return weightedSplits(amountCents,memberIds,values);return equalSplits(amountCents,memberIds)}
 
-export function customAmountSplits(amountCents,memberIds,amounts){
-  const splits=memberIds.map(memberId=>({memberId,amountCents:toCents(amounts[memberId]||0)}));
-  if(splits.some(s=>s.amountCents<0)||splits.reduce((sum,s)=>sum+s.amountCents,0)!==amountCents)throw new Error('自定义金额之和必须等于费用金额');
-  return splits;
-}
+const inHouse=(item,state)=>!item.houseId||item.houseId===state.session?.currentHouseId;
+export function calculateBalances(state){const members=state.members.filter(member=>member.status==='active'&&inHouse(member,state));const balances=Object.fromEntries(members.map(member=>[member.id,0]));state.expenses.filter(expense=>expense.status!=='void'&&inHouse(expense,state)).forEach(expense=>{expense.splits.forEach(split=>{if(split.memberId===expense.payerId)return;balances[split.memberId]=(balances[split.memberId]||0)-split.amountCents;balances[expense.payerId]=(balances[expense.payerId]||0)+split.amountCents})});state.settlements.filter(settlement=>settlement.status==='active'&&inHouse(settlement,state)).forEach(settlement=>{balances[settlement.fromMemberId]=(balances[settlement.fromMemberId]||0)+settlement.amountCents;balances[settlement.toMemberId]=(balances[settlement.toMemberId]||0)-settlement.amountCents});const total=Object.values(balances).reduce((sum,n)=>sum+n,0);if(total!==0)throw new Error(`余额不守恒：${total}`);return balances}
+export function suggestTransfers(balances){const debtors=Object.entries(balances).filter(([,n])=>n<0).map(([id,n])=>({id,amount:-n})).sort((a,b)=>b.amount-a.amount),creditors=Object.entries(balances).filter(([,n])=>n>0).map(([id,n])=>({id,amount:n})).sort((a,b)=>b.amount-a.amount),transfers=[];let i=0,j=0;while(i<debtors.length&&j<creditors.length){const amount=Math.min(debtors[i].amount,creditors[j].amount);if(amount>0)transfers.push({fromMemberId:debtors[i].id,toMemberId:creditors[j].id,amountCents:amount});debtors[i].amount-=amount;creditors[j].amount-=amount;if(debtors[i].amount===0)i++;if(creditors[j].amount===0)j++}return transfers}
 
-export function buildSplits(amountCents,memberIds,mode,values={}){
-  if(mode==='amount')return customAmountSplits(amountCents,memberIds,values);
-  if(mode==='ratio'||mode==='shares')return weightedSplits(amountCents,memberIds,values);
-  return equalSplits(amountCents,memberIds);
-}
+export function paidForExpenseMember(state,expenseId,memberId){const activeIds=new Set(state.settlements.filter(item=>item.status==='active').map(item=>item.id)),allocatedItems=(state.settlementAllocations||[]).filter(item=>item.expenseId===expenseId&&item.memberId===memberId&&activeIds.has(item.settlementId)),allocatedIds=new Set(allocatedItems.map(item=>item.settlementId)),allocated=allocatedItems.reduce((sum,item)=>sum+item.amountCents,0),legacy=state.settlements.filter(item=>item.status==='active'&&item.expenseId===expenseId&&item.fromMemberId===memberId&&!allocatedIds.has(item.id)).reduce((sum,item)=>sum+item.amountCents,0);return allocated+legacy}
+export function expensePaymentRows(expense,state){return expense.splits.map(split=>{const isPayer=split.memberId===expense.payerId,paidCents=isPayer?split.amountCents:Math.min(split.amountCents,paidForExpenseMember(state,expense.id,split.memberId));return{memberId:split.memberId,dueCents:split.amountCents,paidCents,remainingCents:Math.max(0,split.amountCents-paidCents),isPayer}})}
+export function expenseSettlementSummary(expense,state){const rows=expensePaymentRows(expense,state),settledCount=rows.filter(row=>row.remainingCents===0).length;return{rows,settledCount,totalCount:rows.length,remainingCents:rows.reduce((sum,row)=>sum+row.remainingCents,0)}}
+export function expenseStatus(expense,state){if(expense.status==='void')return'已作废';const payable=expensePaymentRows(expense,state).filter(row=>!row.isPayer);if(!payable.length||payable.every(row=>row.remainingCents===0))return'已结清';if(payable.some(row=>row.paidCents>0))return'部分结算';return'待结算'}
+export function unpaidExpenseDebts(state,fromMemberId,toMemberId){return state.expenses.filter(expense=>expense.status!=='void'&&inHouse(expense,state)&&expense.payerId===toMemberId).map(expense=>{const row=expensePaymentRows(expense,state).find(item=>item.memberId===fromMemberId);return row?.remainingCents>0?{expense,remainingCents:row.remainingCents}:null}).filter(Boolean).sort((a,b)=>new Date(a.expense.occurredAt)-new Date(b.expense.occurredAt))}
+export function settlementRoutes(state){const routes=new Map();state.expenses.filter(expense=>expense.status!=='void'&&inHouse(expense,state)).forEach(expense=>{expensePaymentRows(expense,state).filter(row=>!row.isPayer&&row.remainingCents>0).forEach(row=>{const key=`${row.memberId}|${expense.payerId}`,current=routes.get(key)||{fromMemberId:row.memberId,toMemberId:expense.payerId,amountCents:0,expenseCount:0};current.amountCents+=row.remainingCents;current.expenseCount++;routes.set(key,current)})});return[...routes.values()].sort((a,b)=>b.amountCents-a.amountCents)}
+export function recordSettlement(state,{fromMemberId,toMemberId,amountCents,createdBy,note='线下转账'},idFactory=uid){if(!Number.isInteger(amountCents)||amountCents<1)throw new Error('结算金额无效');const debts=unpaidExpenseDebts(state,fromMemberId,toMemberId),outstanding=debts.reduce((sum,item)=>sum+item.remainingCents,0);if(amountCents>outstanding)throw new Error('结算金额不能超过关联费用的待付金额');const settlement={id:idFactory('st'),houseId:state.session.currentHouseId,fromMemberId,toMemberId,amountCents,settledAt:new Date().toISOString(),createdBy,status:'active',note};state.settlements.push(settlement);state.settlementAllocations??=[];let remainder=amountCents;for(const debt of debts){if(!remainder)break;const amount=Math.min(remainder,debt.remainingCents);state.settlementAllocations.push({id:idFactory('sa'),settlementId:settlement.id,expenseId:debt.expense.id,memberId:fromMemberId,amountCents:amount});remainder-=amount}return{settlement,allocations:state.settlementAllocations.filter(item=>item.settlementId===settlement.id)}}
 
-export function calculateBalances(state){
-  const balances=Object.fromEntries(state.members.filter(m=>m.status==='active').map(m=>[m.id,0]));
-  state.expenses.filter(e=>e.status!=='void').forEach(expense=>{
-    expense.splits.forEach(split=>{
-      if(split.memberId===expense.payerId)return;
-      balances[split.memberId]=(balances[split.memberId]||0)-split.amountCents;
-      balances[expense.payerId]=(balances[expense.payerId]||0)+split.amountCents;
-    });
-  });
-  state.settlements.filter(s=>s.status==='active').forEach(settlement=>{
-    balances[settlement.fromMemberId]=(balances[settlement.fromMemberId]||0)+settlement.amountCents;
-    balances[settlement.toMemberId]=(balances[settlement.toMemberId]||0)-settlement.amountCents;
-  });
-  const total=Object.values(balances).reduce((sum,n)=>sum+n,0);
-  if(total!==0)throw new Error(`余额不守恒：${total}`);
-  return balances;
-}
+export function expensesForMonth(state,reference=new Date(),includeVoid=true){return state.expenses.filter(expense=>inHouse(expense,state)&&(includeVoid||expense.status!=='void')&&isSameMonth(expense.occurredAt,reference))}
+export const activeMonthExpenses=(state,reference=new Date())=>expensesForMonth(state,reference,false);
+export function getEffectiveChoreStatus(chore,reference=new Date()){if(chore.status==='completed'||chore.status==='skipped')return chore.status;return new Date(chore.dueAt)<reference?'overdue':'pending'}
+export const choresForWeek=(state,reference=new Date())=>state.chores.filter(chore=>inHouse(chore,state)&&isThisWeek(chore.dueAt,reference));
+function cadenceDays(cadence){return({每天:1,每两天:2,每三天:3,每周:7})[cadence]||0}
+export function nextChoreDueAt(chore){const due=new Date(chore.dueAt),days=cadenceDays(chore.cadence);if(days){due.setDate(due.getDate()+days);return due.toISOString()}if(chore.cadence==='自定义周几'&&Array.isArray(chore.weekdays)&&chore.weekdays.length){for(let offset=1;offset<=7;offset++){const candidate=new Date(due);candidate.setDate(due.getDate()+offset);if(chore.weekdays.includes(candidate.getDay()))return candidate.toISOString()}}return null}
+export function nextChoreAssignee(chore,state){const template=(state.choreTemplates||[]).find(item=>item.id===chore.templateId),order=template?.rotationOrder?.length?template.rotationOrder:state.members.filter(member=>member.status==='active'&&inHouse(member,state)).map(member=>member.id);const index=order.indexOf(chore.assigneeId);return order[(Math.max(index,0)+1)%order.length]||chore.assigneeId}
+export function completeChoreOccurrence(state,choreId,completedBy,reference=new Date(),idFactory=uid){const chore=state.chores.find(item=>item.id===choreId);if(!chore)throw new Error('家务不存在');if(chore.status==='completed')return{chore,next:null};chore.status='completed';chore.completedBy=completedBy;chore.completedAt=reference.toISOString();const nextDueAt=nextChoreDueAt(chore);if(!nextDueAt)return{chore,next:null};const existing=state.chores.find(item=>item.templateId===chore.templateId&&new Date(item.dueAt)>new Date(chore.dueAt));if(existing)return{chore,next:existing};const next={...chore,id:idFactory('c'),assigneeId:nextChoreAssignee(chore,state),dueAt:nextDueAt,status:'pending'};delete next.completedBy;delete next.completedAt;state.chores.push(next);return{chore,next}}
+export function transferChore(state,choreId,toMemberId,actorId){const chore=state.chores.find(item=>item.id===choreId),target=state.members.find(item=>item.id===toMemberId&&item.status==='active');if(!chore||!target)throw new Error('无法转交该家务');const fromMemberId=chore.assigneeId;chore.assigneeId=toMemberId;chore.transferredBy=actorId;chore.transferredAt=new Date().toISOString();return{chore,fromMemberId}}
 
-export function suggestTransfers(balances){
-  const debtors=Object.entries(balances).filter(([,n])=>n<0).map(([id,n])=>({id,amount:-n})).sort((a,b)=>b.amount-a.amount);
-  const creditors=Object.entries(balances).filter(([,n])=>n>0).map(([id,n])=>({id,amount:n})).sort((a,b)=>b.amount-a.amount);
-  const transfers=[];let i=0,j=0;
-  while(i<debtors.length&&j<creditors.length){
-    const amount=Math.min(debtors[i].amount,creditors[j].amount);
-    if(amount>0)transfers.push({fromMemberId:debtors[i].id,toMemberId:creditors[j].id,amountCents:amount});
-    debtors[i].amount-=amount;creditors[j].amount-=amount;
-    if(debtors[i].amount===0)i++;if(creditors[j].amount===0)j++;
-  }
-  return transfers;
-}
-
-export function expenseStatus(expense,state){
-  if(expense.status==='void')return '已作废';
-  const involved=expense.splits.filter(s=>s.memberId!==expense.payerId).reduce((sum,s)=>sum+s.amountCents,0);
-  const settled=state.settlements.filter(s=>s.status==='active'&&s.expenseId===expense.id).reduce((sum,s)=>sum+s.amountCents,0);
-  if(settled<=0)return '待结算';
-  if(settled>=involved)return '已结清';
-  return '部分结算';
-}
-
-export function activeMonthExpenses(state){
-  const now=new Date();
-  return state.expenses.filter(e=>e.status!=='void'&&new Date(e.occurredAt).getFullYear()===now.getFullYear()&&new Date(e.occurredAt).getMonth()===now.getMonth());
-}
-
-export function monthMetrics(state,currentMemberId){
-  const monthExpenses=activeMonthExpenses(state);
-  const completed=state.chores.filter(c=>c.status==='completed').length;
-  const included=state.chores.filter(c=>c.status!=='skipped').length||1;
-  return {
-    expenseCents:monthExpenses.reduce((sum,e)=>sum+e.amountCents,0),
-    balanceCents:calculateBalances(state)[currentMemberId]||0,
-    choreRate:Math.round(completed/included*100),
-    choreCopy:`本周 ${completed} / ${included} 项`,
-    replenished:state.purchases.filter(p=>p.status==='stocked').length
-  };
-}
-
-export function transitionSupply(supply,action,currentMemberId){
-  const allowed={sufficient:['markLow'],low:['claim','restore'],purchasing:['cancel','bought'],bought:['stock']};
-  if(!allowed[supply.status]?.includes(action))throw new Error('当前状态不能执行此操作');
-  if(action==='markLow')supply.status='low';
-  if(action==='restore')supply.status='sufficient';
-  if(action==='claim'){supply.status='purchasing';supply.claimedBy=currentMemberId;supply.claimedAt=new Date().toISOString();}
-  if(action==='cancel'){supply.status='low';supply.claimedBy=null;supply.claimedAt=null;}
-  if(action==='bought')supply.status='bought';
-  if(action==='stock'){supply.status='sufficient';supply.claimedBy=null;supply.claimedAt=null;supply.lastRestockedAt=new Date().toISOString();}
-  return supply;
-}
+export function getSupplyStatus(supply){if(supply.status==='purchasing')return'purchasing';if(Number(supply.quantity)<=0)return'depleted';return Number(supply.quantity)<=Number(supply.threshold)?'low':'sufficient'}
+export function transitionSupply(supply,action,currentMemberId){const status=getSupplyStatus(supply),allowed={sufficient:['markLow'],low:['claim','restore'],depleted:['claim','restore'],purchasing:['cancel','complete']};if(!allowed[status]?.includes(action))throw new Error('当前状态不能执行此操作');if(action==='markLow')supply.status='low';if(action==='restore'){supply.quantity=Math.max(Number(supply.quantity)||0,Number(supply.threshold)+1);supply.status='sufficient'}if(action==='claim'){supply.status='purchasing';supply.claimedBy=currentMemberId;supply.claimedAt=new Date().toISOString()}if(action==='cancel'){supply.status=Number(supply.quantity)<=0?'depleted':'low';supply.claimedBy=null;supply.claimedAt=null}return supply}
+export function completeSupplyPurchase(state,{supplyId,buyerId,quantityPurchased,amountCents,createExpense=true},idFactory=uid){const supply=state.supplies.find(item=>item.id===supplyId);if(!supply)throw new Error('用品不存在');const quantity=Number(quantityPurchased);if(!Number.isFinite(quantity)||quantity<=0)throw new Error('购买数量必须大于 0');if(!Number.isInteger(amountCents)||amountCents<1)throw new Error('购买金额无效');const purchasedAt=new Date().toISOString(),before=Number(supply.quantity)||0;supply.quantity=supply.stockMode==='estimate'?100:before+quantity;supply.status=getSupplyStatus({...supply,status:'sufficient'});supply.claimedBy=null;supply.claimedAt=null;supply.lastRestockedAt=purchasedAt;const purchase={id:idFactory('p'),houseId:state.session.currentHouseId,supplyId,buyerId,quantityPurchased:quantity,amountCents,purchasedAt,stockedAt:purchasedAt,status:'stocked',createExpense,linkedExpenseId:null};state.purchases.push(purchase);state.inventoryEvents??=[];state.inventoryEvents.unshift({id:idFactory('ie'),houseId:state.session.currentHouseId,supplyId,type:'restock',change:supply.quantity-before,before,after:supply.quantity,actorId:buyerId,createdAt:purchasedAt});if(createExpense&&!purchase.linkedExpenseId){const ids=state.members.filter(member=>member.status==='active'&&inHouse(member,state)).map(member=>member.id),expenseId=idFactory('e');state.expenses.unshift({id:expenseId,houseId:state.session.currentHouseId,title:supply.name,amountCents,occurredAt:purchasedAt,payerId:buyerId,participantIds:ids,splits:buildSplits(amountCents,ids,'equal'),splitMode:'equal',category:'共用品',status:'pending',note:`由${supply.name}采购自动生成`,createdBy:buyerId,createdAt:purchasedAt});purchase.linkedExpenseId=expenseId}return{purchase,supply,before,expenseId:purchase.linkedExpenseId}}
+export function monthMetrics(state,currentMemberId,reference=new Date()){const monthExpenses=activeMonthExpenses(state,reference),weekChores=choresForWeek(state,reference).filter(chore=>getEffectiveChoreStatus(chore,reference)!=='skipped'),completed=weekChores.filter(chore=>getEffectiveChoreStatus(chore,reference)==='completed').length,stocked=state.purchases.filter(purchase=>purchase.status==='stocked'&&inHouse(purchase,state)&&isSameMonth(purchase.stockedAt||purchase.purchasedAt,reference));return{expenseCents:monthExpenses.reduce((sum,expense)=>sum+expense.amountCents,0),balanceCents:calculateBalances(state)[currentMemberId]||0,choreRate:weekChores.length?Math.round(completed/weekChores.length*100):100,choreCopy:`本周 ${completed} / ${weekChores.length} 项`,replenished:stocked.length,supplySpendCents:state.purchases.filter(purchase=>inHouse(purchase,state)&&isSameMonth(purchase.purchasedAt||purchase.stockedAt,reference)).reduce((sum,purchase)=>sum+purchase.amountCents,0)}}

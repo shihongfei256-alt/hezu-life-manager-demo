@@ -1,28 +1,35 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{equalSplits,buildSplits,calculateBalances,suggestTransfers}from'../dist/domain.mjs';
+import{equalSplits,buildSplits,calculateBalances,suggestTransfers,expenseStatus,expenseSettlementSummary,recordSettlement,expensesForMonth,startOfWeek,endOfWeek,isThisWeek,relativeDayLabel,getEffectiveChoreStatus,completeChoreOccurrence,transferChore,transitionSupply,getSupplyStatus,completeSupplyPurchase,monthMetrics}from'../dist/domain.mjs';
 
-test('100 元三人均分保持金额守恒且余数稳定',()=>{
-  const splits=equalSplits(10000,['a','b','c']);
-  assert.deepEqual(splits.map(s=>s.amountCents),[3334,3333,3333]);
-  assert.equal(splits.reduce((n,s)=>n+s.amountCents,0),10000);
-});
+const members=['a','b','c'].map((id,index)=>({id,houseId:'h',status:'active',displayName:id,role:index?'member':'admin'}));
+const expense=(id,amount,payer='a',participants=['a','b','c'],occurredAt='2026-09-10T12:00:00+08:00')=>({id,houseId:'h',title:id,amountCents:amount,payerId:payer,participantIds:participants,splits:equalSplits(amount,participants),occurredAt,status:'pending'});
+const state=(expenses=[])=>({schemaVersion:3,session:{currentHouseId:'h',currentMemberId:'a'},members:structuredClone(members),expenses,settlements:[],settlementAllocations:[],chores:[],choreTemplates:[],supplies:[],purchases:[],inventoryEvents:[]});
+let sequence=0;const fixedId=prefix=>`${prefix}_${++sequence}`;
 
-test('按份数分摊保持金额守恒',()=>{
-  const splits=buildSplits(9999,['a','b','c'],'shares',{a:1,b:2,c:3});
-  assert.equal(splits.reduce((n,s)=>n+s.amountCents,0),9999);
-  assert.deepEqual(splits.map(s=>s.amountCents),[1667,3333,4999]);
-});
+test('三人均分金额守恒且余数稳定',()=>{const splits=equalSplits(10000,['a','b','c']);assert.deepEqual(splits.map(s=>s.amountCents),[3334,3333,3333]);assert.equal(splits.reduce((n,s)=>n+s.amountCents,0),10000)});
+test('固定金额必须严格等于费用金额',()=>{assert.deepEqual(buildSplits(10000,['a','b'],'amount',{a:30,b:70}).map(s=>s.amountCents),[3000,7000]);assert.throws(()=>buildSplits(10000,['a','b'],'amount',{a:30,b:60}),/必须等于/)});
+test('比例总计必须为 100%',()=>{assert.deepEqual(buildSplits(10000,['a','b'],'ratio',{a:30,b:70}).map(s=>s.amountCents),[3000,7000]);assert.throws(()=>buildSplits(10000,['a','b'],'ratio',{a:1,b:2}),/100%/)});
+test('按份数分摊保持金额守恒',()=>{const splits=buildSplits(9999,['a','b','c'],'shares',{a:1,b:2,c:3});assert.equal(splits.reduce((n,s)=>n+s.amountCents,0),9999);assert.deepEqual(splits.map(s=>s.amountCents),[1667,3333,4999])});
 
-test('费用和结算后的全屋净余额始终为零',()=>{
-  const state={members:[{id:'a',status:'active'},{id:'b',status:'active'},{id:'c',status:'active'}],expenses:[{status:'pending',payerId:'a',splits:equalSplits(10000,['a','b','c'])}],settlements:[{status:'active',fromMemberId:'b',toMemberId:'a',amountCents:1000}]};
-  const balances=calculateBalances(state);
-  assert.equal(Object.values(balances).reduce((n,v)=>n+v,0),0);
-  assert.deepEqual(balances,{a:5666,b:-2333,c:-3333});
-});
+test('费用和结算后的全屋净余额始终为零',()=>{const data=state([expense('e1',10000)]);data.settlements.push({id:'s',houseId:'h',status:'active',fromMemberId:'b',toMemberId:'a',amountCents:1000});const balances=calculateBalances(data);assert.equal(Object.values(balances).reduce((n,v)=>n+v,0),0);assert.deepEqual(balances,{a:5666,b:-2333,c:-3333})});
+test('已作废费用不参与余额',()=>{const item=expense('e1',9000);item.status='void';assert.deepEqual(calculateBalances(state([item])),{a:0,b:0,c:0})});
+test('建议转账覆盖全部债务',()=>{const transfers=suggestTransfers({a:6000,b:-2500,c:-3500});assert.equal(transfers.reduce((n,t)=>n+t.amountCents,0),6000);assert.equal(transfers.length,2)});
 
-test('建议转账覆盖全部债务',()=>{
-  const transfers=suggestTransfers({a:6000,b:-2500,c:-3500});
-  assert.equal(transfers.reduce((n,t)=>n+t.amountCents,0),6000);
-  assert.equal(transfers.length,2);
-});
+test('全局结算按最早费用生成 allocation',()=>{sequence=0;const data=state([expense('old',3000,'a',['a','b'],'2026-09-01T12:00:00+08:00'),expense('new',4000,'a',['a','b'],'2026-09-02T12:00:00+08:00')]);const result=recordSettlement(data,{fromMemberId:'b',toMemberId:'a',amountCents:2500,createdBy:'b'},fixedId);assert.equal(result.allocations.length,2);assert.deepEqual(result.allocations.map(a=>[a.expenseId,a.amountCents]),[['old',1500],['new',1000]]);assert.equal(expenseStatus(data.expenses[0],data),'已结清');assert.equal(expenseStatus(data.expenses[1],data),'部分结算')});
+test('同一费用支持多个成员分别结算',()=>{sequence=0;const data=state([expense('e1',9000)]);recordSettlement(data,{fromMemberId:'b',toMemberId:'a',amountCents:3000,createdBy:'b'},fixedId);assert.equal(expenseStatus(data.expenses[0],data),'部分结算');recordSettlement(data,{fromMemberId:'c',toMemberId:'a',amountCents:3000,createdBy:'c'},fixedId);assert.equal(expenseStatus(data.expenses[0],data),'已结清');assert.deepEqual(expenseSettlementSummary(data.expenses[0],data).rows.map(r=>r.remainingCents),[0,0,0])});
+test('一次结算可冲销多笔费用且总额一致',()=>{sequence=0;const data=state([expense('e1',2000,'a',['a','b']),expense('e2',4000,'a',['a','b'])]);const result=recordSettlement(data,{fromMemberId:'b',toMemberId:'a',amountCents:3000,createdBy:'b'},fixedId);assert.equal(result.allocations.reduce((sum,item)=>sum+item.amountCents,0),3000);assert.equal(calculateBalances(data).b,0)});
+
+test('月份筛选排除跨月费用',()=>{const data=state([expense('aug',1000,'a',['a','b'],'2026-08-31T22:00:00+08:00'),expense('sep',1000,'a',['a','b'],'2026-09-01T08:00:00+08:00')]);assert.deepEqual(expensesForMonth(data,new Date('2026-09-15T12:00:00+08:00')).map(e=>e.id),['sep'])});
+test('自然周边界为周一至周日',()=>{const reference=new Date('2026-09-09T12:00:00+08:00');assert.equal(startOfWeek(reference).getDay(),1);assert.equal(endOfWeek(reference).getDay(),0);assert.equal(isThisWeek('2026-09-07T00:00:00+08:00',reference),true);assert.equal(isThisWeek('2026-09-13T23:59:59+08:00',reference),true);assert.equal(isThisWeek('2026-09-14T00:00:00+08:00',reference),false)});
+test('今天和明天按自然日判断',()=>{const reference=new Date('2026-09-12T23:30:00+08:00');assert.equal(relativeDayLabel('2026-09-12T08:00:00+08:00',reference),'今天');assert.equal(relativeDayLabel('2026-09-13T00:10:00+08:00',reference),'明天')});
+
+test('未完成家务会派生为 overdue',()=>{assert.equal(getEffectiveChoreStatus({status:'pending',dueAt:'2026-09-10T10:00:00+08:00'},new Date('2026-09-11T10:00:00+08:00')),'overdue')});
+test('完成周期家务会生成下一轮并轮换负责人',()=>{sequence=0;const data=state();data.choreTemplates=[{id:'t',rotationOrder:['a','b','c']}];data.chores=[{id:'c1',houseId:'h',templateId:'t',title:'清洁',area:'厨房',assigneeId:'a',dueAt:'2026-09-12T20:00:00+08:00',status:'pending',cadence:'每周'}];const result=completeChoreOccurrence(data,'c1','a',new Date('2026-09-12T19:00:00+08:00'),fixedId);assert.equal(result.chore.status,'completed');assert.equal(result.next.assigneeId,'b');assert.equal(new Date(result.next.dueAt).getDate(),19)});
+test('一次性家务完成后不生成下一轮',()=>{const data=state();data.chores=[{id:'c1',houseId:'h',templateId:'t',assigneeId:'a',dueAt:'2026-09-12T20:00:00+08:00',status:'pending',cadence:'一次性'}];assert.equal(completeChoreOccurrence(data,'c1','a',new Date('2026-09-12T19:00:00+08:00'),fixedId).next,null)});
+test('家务可明确转交给指定成员',()=>{const data=state();data.chores=[{id:'c1',assigneeId:'a'}];transferChore(data,'c1','c','a');assert.equal(data.chores[0].assigneeId,'c')});
+
+test('用品支持低库存认领和取消认领',()=>{const supply={quantity:1,threshold:2,status:'low'};transitionSupply(supply,'claim','a');assert.equal(supply.status,'purchasing');transitionSupply(supply,'cancel','a');assert.equal(supply.status,'low')});
+test('数量为 0 自动显示已用完',()=>{assert.equal(getSupplyStatus({quantity:0,threshold:2,status:'low'}),'depleted')});
+test('完成采购会增加库存并只生成一笔共同费用',()=>{sequence=0;const data=state();data.supplies=[{id:'s1',houseId:'h',name:'卷纸',unit:'卷',quantity:1,threshold:2,stockMode:'quantity',status:'purchasing',claimedBy:'a'}];const result=completeSupplyPurchase(data,{supplyId:'s1',buyerId:'a',quantityPurchased:12,amountCents:2990,createExpense:true},fixedId);assert.equal(result.supply.quantity,13);assert.equal(result.supply.status,'sufficient');assert.equal(data.expenses.length,1);assert.equal(data.purchases.length,1);assert.equal(data.purchases[0].linkedExpenseId,data.expenses[0].id)});
+test('月度采购金额只统计当月',()=>{const data=state();data.purchases=[{houseId:'h',status:'stocked',amountCents:1000,purchasedAt:'2026-09-01T12:00:00+08:00',stockedAt:'2026-09-01T12:00:00+08:00'},{houseId:'h',status:'stocked',amountCents:500,purchasedAt:'2026-08-01T12:00:00+08:00',stockedAt:'2026-08-01T12:00:00+08:00'}];assert.equal(monthMetrics(data,'a',new Date('2026-09-12T12:00:00+08:00')).supplySpendCents,1000)});
