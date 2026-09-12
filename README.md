@@ -1,6 +1,8 @@
 # 搭子屋 合租生活管家
 
-一个面向年轻合租群体的静态网页 Demo。核心流程覆盖共同费用、家务轮值、用品采购、成员规则与本地数据管理。
+一个面向年轻合租群体的现代产品型网页 Demo。核心流程覆盖共同费用、家务轮值、用品采购、成员规则与本地数据管理。
+
+界面采用 Tailwind CSS 4、Motion 与 Three.js 构建：使用响应式 Bento Dashboard、克制的玻璃质感、细边框、轻阴影、噪点纹理，以及低干扰的粒子与线框几何氛围。
 
 ## 当前能力
 
@@ -12,7 +14,12 @@
 
 ## 本地运行
 
-使用任意静态服务器打开 `dist` 目录。应用使用 Hash 路由和相对资源路径，兼容 GitHub Pages 子路径。
+```bash
+pnpm install
+pnpm dev
+```
+
+生产构建使用 `pnpm build`，产物输出至 `dist`。应用使用 Hash 路由和相对资源路径，兼容 GitHub Pages 子路径。
 
 ## 数据
 
@@ -23,6 +30,10 @@
 ```bash
 node --test tests/domain.test.mjs
 ```
+
+## 回退
+
+现代化改版前的版本已保存在 Git 分支与标签 `backup-before-modern-ui-20260912`，并在本地 `backups` 目录保留完整仓库 bundle 和旧版构建压缩包。
 
 ## 已知边界
 
