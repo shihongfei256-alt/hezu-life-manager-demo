@@ -2,19 +2,14 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#12304a">
-  <meta name="description" content="搭子屋：费用算得清、家务轮得明、用品不断档。"><title>搭子屋｜合租生活管家</title><link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/index-CyuShFFX.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/three-CQM8zjF3.js">
-  <link rel="modulepreload" crossorigin href="./assets/motion-CdX_aYaT.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-dMSWeCIv.css">
+  <meta name="description" content="搭子屋：费用算得清、家务轮得明、用品不断档。"><title>搭子屋｜合租生活管家</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="ambient-scene" aria-hidden="true"></div>
   <a class="skip-link" href="#main-content">跳到主要内容</a>
   <div class="app-shell">
     <aside class="sidebar" aria-label="主导航">
       <a class="brand" href="#today" data-route="today"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>搭子屋</span></a>
-      <button class="home-switcher" type="button" id="house-switcher"><span class="house-glyph" aria-hidden="true"></span><span><b id="side-house-name">梧桐里 3B</b><small id="side-member-count">4 位室友</small></span><span aria-hidden="true">⌄</span></button>
+      <button class="home-switcher" type="button" id="house-switcher"><span aria-hidden="true">🏠</span><span><b id="side-house-name">梧桐里 3B</b><small id="side-member-count">4 位室友</small></span><span aria-hidden="true">⌄</span></button>
       <nav class="nav-list"><a class="nav-item active" href="#today" data-route="today"><span aria-hidden="true">⌂</span>今天</a><a class="nav-item" href="#expenses" data-route="expenses"><span aria-hidden="true">¥</span>费用</a><a class="nav-item" href="#chores" data-route="chores"><span aria-hidden="true">✓</span>家务</a><a class="nav-item" href="#supplies" data-route="supplies"><span aria-hidden="true">◇</span>用品</a><a class="nav-item" href="#more" data-route="more"><span aria-hidden="true">•••</span>更多</a></nav>
       <div class="sidebar-note"><p>本月约定</p><strong>别让小事过夜。</strong><span>费用当天记，家务做完点一下。</span></div>
       <button class="profile" type="button" data-route-button="more"><span class="avatar me">林</span><span><b id="profile-name">林一</b><small>房屋管理员</small></span><span aria-hidden="true">•••</span></button>
@@ -54,4 +49,5 @@
   <dialog id="notifications-dialog"><form method="dialog"><div class="dialog-head"><div><p>行动提醒</p><h2>通知</h2></div><button class="close-btn" value="close">×</button></div><div class="notification-list" id="notification-list"></div><div class="dialog-actions"><button class="small-btn" type="button" id="read-all">全部已读</button></div></form></dialog>
   <dialog id="confirm-dialog"><form method="dialog"><div class="dialog-head"><div><p>请确认影响</p><h2>确认操作</h2></div><button class="close-btn" value="cancel">×</button></div><p id="confirm-copy"></p><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="danger-btn" value="confirm" id="confirm-action">确认</button></div></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-copy"></span><button type="button" id="toast-undo">撤销</button></div>
+  <script type="module" src="app.js"></script>
 </body></html>

@@ -33,12 +33,12 @@ export function seedState(){return{
     {id:'c6',templateId:'ct6',title:'浇绿植',area:'客厅与阳台',assigneeId:'m2',dueAt:iso(-1,8),status:'completed',completedBy:'m2',completedAt:iso(-1,8),cadence:'每三天',nextAssigneeId:'m3'}
   ],
   supplies:[
-    {id:'s1',houseId:'house_1',name:'卷纸',icon:'box',category:'清洁',location:'卫生间',unit:'卷',quantity:1,threshold:2,stockMode:'quantity',status:'low',lastRestockedAt:iso(-16)},
-    {id:'s2',houseId:'house_1',name:'洗洁精',icon:'box',category:'清洁',location:'厨房',unit:'瓶',quantity:10,threshold:20,stockMode:'estimate',status:'low',lastRestockedAt:iso(-28)},
-    {id:'s3',houseId:'house_1',name:'垃圾袋',icon:'box',category:'清洁',location:'厨房',unit:'卷',quantity:2,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-7)},
-    {id:'s4',houseId:'house_1',name:'洗衣液',icon:'box',category:'清洁',location:'阳台',unit:'瓶',quantity:60,threshold:20,stockMode:'estimate',status:'sufficient',lastRestockedAt:iso(-9)},
-    {id:'s5',houseId:'house_1',name:'海绵擦',icon:'box',category:'清洁',location:'厨房',unit:'包',quantity:1,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-3)},
-    {id:'s6',houseId:'house_1',name:'大米',icon:'box',category:'食品',location:'厨房',unit:'kg',quantity:4,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-12)}
+    {id:'s1',houseId:'house_1',name:'卷纸',icon:'🧻',category:'清洁',location:'卫生间',unit:'卷',quantity:1,threshold:2,stockMode:'quantity',status:'low',lastRestockedAt:iso(-16)},
+    {id:'s2',houseId:'house_1',name:'洗洁精',icon:'🧴',category:'清洁',location:'厨房',unit:'瓶',quantity:10,threshold:20,stockMode:'estimate',status:'low',lastRestockedAt:iso(-28)},
+    {id:'s3',houseId:'house_1',name:'垃圾袋',icon:'🗑️',category:'清洁',location:'厨房',unit:'卷',quantity:2,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-7)},
+    {id:'s4',houseId:'house_1',name:'洗衣液',icon:'🫧',category:'清洁',location:'阳台',unit:'瓶',quantity:60,threshold:20,stockMode:'estimate',status:'sufficient',lastRestockedAt:iso(-9)},
+    {id:'s5',houseId:'house_1',name:'海绵擦',icon:'🧽',category:'清洁',location:'厨房',unit:'包',quantity:1,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-3)},
+    {id:'s6',houseId:'house_1',name:'大米',icon:'🍚',category:'食品',location:'厨房',unit:'kg',quantity:4,threshold:1,stockMode:'quantity',status:'sufficient',lastRestockedAt:iso(-12)}
   ],
   purchases:[],
   rules:[

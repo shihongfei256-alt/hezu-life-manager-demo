@@ -1,6 +1,6 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{equalSplits,buildSplits,calculateBalances,suggestTransfers}from'../src/domain.mjs';
+import{equalSplits,buildSplits,calculateBalances,suggestTransfers}from'../dist/domain.mjs';
 
 test('100 元三人均分保持金额守恒且余数稳定',()=>{
   const splits=equalSplits(10000,['a','b','c']);

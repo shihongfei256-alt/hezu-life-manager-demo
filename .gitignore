@@ -2,6 +2,3 @@ reference-extraction.txt
 reference-render/
 tools/
 *.tar.gz
-backups/
-node_modules/
-.vite/
