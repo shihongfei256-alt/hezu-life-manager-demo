@@ -1,124 +1,53 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#12304a" />
-  <meta name="description" content="搭子屋：年轻合租人的费用、家务和共用品协作管家。" />
-  <title>搭子屋｜合租生活管家</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#12304a">
+  <meta name="description" content="搭子屋：费用算得清、家务轮得明、用品不断档。"><title>搭子屋｜合租生活管家</title><link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
   <div class="app-shell">
     <aside class="sidebar" aria-label="主导航">
-      <a class="brand" href="#today" aria-label="搭子屋首页">
-        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span>搭子屋</span>
-      </a>
-      <div class="home-switcher">
-        <span class="home-emoji" aria-hidden="true">🏠</span>
-        <span><b>梧桐里 3B</b><small>4 位室友</small></span>
-        <button class="icon-btn" type="button" aria-label="切换房屋">⌄</button>
-      </div>
-      <nav class="nav-list">
-        <button class="nav-item active" data-view="today" type="button"><span aria-hidden="true">⌂</span>今天</button>
-        <button class="nav-item" data-view="expenses" type="button"><span aria-hidden="true">¥</span>费用</button>
-        <button class="nav-item" data-view="chores" type="button"><span aria-hidden="true">✓</span>家务</button>
-        <button class="nav-item" data-view="supplies" type="button"><span aria-hidden="true">◇</span>用品</button>
-      </nav>
-      <div class="sidebar-note">
-        <p>本月约定</p>
-        <strong>别让小事过夜。</strong>
-        <span>费用当天记，家务做完点一下。</span>
-      </div>
-      <button class="profile" type="button">
-        <span class="avatar me">林</span><span><b>林一</b><small>房屋管理员</small></span><span aria-hidden="true">•••</span>
-      </button>
+      <a class="brand" href="#today" data-route="today"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>搭子屋</span></a>
+      <button class="home-switcher" type="button" id="house-switcher"><span aria-hidden="true">🏠</span><span><b id="side-house-name">梧桐里 3B</b><small id="side-member-count">4 位室友</small></span><span aria-hidden="true">⌄</span></button>
+      <nav class="nav-list"><a class="nav-item active" href="#today" data-route="today"><span aria-hidden="true">⌂</span>今天</a><a class="nav-item" href="#expenses" data-route="expenses"><span aria-hidden="true">¥</span>费用</a><a class="nav-item" href="#chores" data-route="chores"><span aria-hidden="true">✓</span>家务</a><a class="nav-item" href="#supplies" data-route="supplies"><span aria-hidden="true">◇</span>用品</a><a class="nav-item" href="#more" data-route="more"><span aria-hidden="true">•••</span>更多</a></nav>
+      <div class="sidebar-note"><p>本月约定</p><strong>别让小事过夜。</strong><span>费用当天记，家务做完点一下。</span></div>
+      <button class="profile" type="button" data-route-button="more"><span class="avatar me">林</span><span><b id="profile-name">林一</b><small>房屋管理员</small></span><span aria-hidden="true">•••</span></button>
     </aside>
-
     <main id="main-content" tabindex="-1">
-      <header class="mobile-header">
-        <a class="brand" href="#today"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>搭子屋</span></a>
-        <div class="avatar-stack" aria-label="4 位室友"><span class="avatar a">周</span><span class="avatar b">许</span><span class="avatar c">阿</span><span class="avatar me">林</span></div>
-      </header>
+      <header class="mobile-header"><a class="brand" href="#today" data-route="today"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>搭子屋</span></a><div class="header-actions"><button class="round-btn notification-trigger" type="button" aria-label="通知">♢<i class="unread-dot"></i></button><button class="avatar me" type="button" data-route-button="more" aria-label="更多与设置">林</button></div></header>
 
       <section class="view active" id="today-view" aria-labelledby="today-title">
-        <div class="page-head">
-          <div><p class="date" id="today-date"></p><h1 id="today-title">晚上好，林一</h1><p>家里有 <b class="ink-underline">3 件事</b> 等你处理。</p></div>
-          <button class="primary-btn" type="button" data-open-expense><span aria-hidden="true">＋</span>记一笔</button>
-        </div>
-
-        <div class="today-grid">
-          <section class="focus-panel" aria-labelledby="todo-heading">
-            <div class="section-head"><div><h2 id="todo-heading">先做这些</h2><p>只看与你有关的事项</p></div><span class="count-badge" id="todo-count">3</span></div>
-            <div class="task-list" id="today-task-list"></div>
-          </section>
-
-          <aside class="activity-panel" aria-labelledby="activity-heading">
-            <div class="section-head"><div><h2 id="activity-heading">家里刚刚</h2><p>所有变化都留个记录</p></div></div>
-            <ol class="activity-list" id="activity-list">
-              <li><span class="avatar b">许</span><p><b>许言</b> 买了厨房纸<br><small>共同费用 ¥24.80 · 18:32</small></p></li>
-              <li><span class="avatar a">周</span><p><b>周周</b> 完成了倒垃圾<br><small>家务打卡 · 昨天 21:08</small></p></li>
-              <li><span class="activity-icon" aria-hidden="true">↗</span><p><b>8 月水费已出账</b><br><small>¥126.40 · 每人 ¥31.60</small></p></li>
-            </ol>
-          </aside>
-        </div>
-
-        <section class="pulse" aria-labelledby="pulse-heading">
-          <div class="section-head"><div><h2 id="pulse-heading">这个月，家里运转得怎样</h2><p>2026 年 9 月</p></div><button class="text-btn" type="button" data-view-jump="expenses">查看明细</button></div>
-          <div class="metric-row">
-            <div class="metric"><span class="metric-icon blue" aria-hidden="true">¥</span><p>共同支出<strong>¥ 2,486.40</strong><small>比上月少 8%</small></p></div>
-            <div class="metric"><span class="metric-icon yellow" aria-hidden="true">↙</span><p>你待收<strong>¥ 186.20</strong><small>来自 2 位室友</small></p></div>
-            <div class="metric"><span class="metric-icon green" aria-hidden="true">✓</span><p>家务完成<strong><span id="completion-rate">86</span>%</strong><small id="completion-copy">本周 6 / 7 项</small></p></div>
-          </div>
-        </section>
+        <div class="page-head"><div><p class="date" id="today-date"></p><h1 id="today-title"><span id="greeting">晚上好</span>，<span id="current-name">林一</span></h1><p>家里有 <b class="ink-underline"><span id="headline-count">0</span> 件事</b> 等你处理。</p></div><div class="page-actions"><button class="round-btn desktop-only notification-trigger" type="button" aria-label="打开通知">♢<i class="unread-dot"></i></button><button class="primary-btn" type="button" data-open="expense"><span aria-hidden="true">＋</span>记一笔</button></div></div>
+        <div class="today-grid"><section class="panel focus-panel" aria-labelledby="todo-heading"><div class="section-head"><div><h2 id="todo-heading">先做这些</h2><p>只看与你有关的事项</p></div><span class="count-badge" id="todo-count"></span></div><div class="task-list" id="today-task-list"></div></section><aside class="panel activity-panel" aria-labelledby="activity-heading"><div class="section-head"><div><h2 id="activity-heading">家里刚刚</h2><p>每次变化都留个记录</p></div><select id="activity-filter" aria-label="筛选动态"><option value="all">全部</option><option value="expense">费用</option><option value="chore">家务</option><option value="supply">用品</option><option value="rule">规则</option></select></div><ol class="activity-list" id="activity-list"></ol></aside></div>
+        <section class="panel pulse" aria-labelledby="pulse-heading"><div class="section-head"><div><h2 id="pulse-heading">这个月，家里运转得怎样</h2><p id="month-label"></p></div><button class="text-btn" type="button" data-route-button="expenses">查看明细</button></div><div class="metric-row"><button class="metric" type="button" data-route-button="expenses"><span class="metric-icon blue">¥</span><span>共同支出<strong id="metric-expense">¥0.00</strong><small>来自本月有效费用</small></span></button><button class="metric" type="button" data-route-button="expenses"><span class="metric-icon yellow">↙</span><span id="metric-balance-label">你待收<strong id="metric-balance">¥0.00</strong><small>由账本与结算实时计算</small></span></button><button class="metric" type="button" data-route-button="chores"><span class="metric-icon green">✓</span><span>家务完成<strong id="metric-chore">0%</strong><small id="metric-chore-copy"></small></span></button><button class="metric" type="button" data-route-button="supplies"><span class="metric-icon coral">◇</span><span>已补充用品<strong id="metric-supply">0 件</strong><small>采购完成并确认入库</small></span></button></div></section>
+        <details class="mobile-activity"><summary>查看家里动态</summary><ol class="activity-list" id="mobile-activity-list"></ol></details>
       </section>
 
       <section class="view" id="expenses-view" aria-labelledby="expenses-title">
-        <div class="page-head"><div><p class="date">共同账本 · 2026 年 9 月</p><h1 id="expenses-title">费用</h1><p>每一笔花在哪、谁先垫、谁该付，一眼算清。</p></div><button class="primary-btn" type="button" data-open-expense><span aria-hidden="true">＋</span>记一笔</button></div>
-        <div class="balance-board">
-          <div><span>我的净余额</span><strong>+ ¥186.20</strong><small>你应该收回</small></div>
-          <div class="settle-route"><span class="avatar a">周</span><p><b>周周 → 林一</b><small>建议转账 ¥124.60</small></p><button class="small-btn" type="button" data-settle>标记结清</button></div>
-          <div class="settle-route"><span class="avatar c">阿</span><p><b>阿哲 → 林一</b><small>建议转账 ¥61.60</small></p><button class="small-btn" type="button" data-settle>标记结清</button></div>
-        </div>
-        <section class="table-card" aria-labelledby="ledger-heading">
-          <div class="section-head"><div><h2 id="ledger-heading">本月明细</h2><p><span id="expense-count">5</span> 笔共同费用</p></div><div class="filter-pills" aria-label="费用筛选"><button class="active" type="button">全部</button><button type="button">我支付的</button><button type="button">待结算</button></div></div>
-          <div class="expense-list" id="expense-list"></div>
-        </section>
+        <div class="page-head"><div><p class="date">共同账本</p><h1 id="expenses-title">费用算清，关系轻松</h1><p>原始费用、分摊和结算分开记录，每一笔都能解释。</p></div><button class="primary-btn" type="button" data-open="expense"><span>＋</span>记一笔</button></div>
+        <section class="balance-board" aria-labelledby="balance-heading"><div class="balance-main"><span id="balance-heading">我的净余额</span><strong id="net-balance">¥0.00</strong><small id="net-balance-copy"></small></div><div class="transfer-list" id="transfer-list"></div></section>
+        <section class="panel table-card"><div class="section-head expense-head"><div><h2>本月明细</h2><p><span id="expense-count">0</span> 笔有效费用</p></div><div class="ledger-tools"><label class="search-box"><span>⌕</span><span class="sr-only">搜索费用</span><input id="expense-search" placeholder="搜索用途"></label><select id="expense-filter" aria-label="筛选费用"><option value="all">全部状态</option><option value="mine">我支付的</option><option value="pending">待结算</option><option value="settled">已结清</option><option value="void">已作废</option></select></div></div><div class="expense-list" id="expense-list"></div></section>
       </section>
 
-      <section class="view" id="chores-view" aria-labelledby="chores-title">
-        <div class="page-head"><div><p class="date">9 月 7 日—13 日</p><h1 id="chores-title">这周轮到谁</h1><p>分工写清楚，做完就翻牌。</p></div><button class="primary-btn secondary-action" type="button" id="add-chore"><span aria-hidden="true">＋</span>加家务</button></div>
-        <div class="week-strip" aria-label="本周日期"><span>一<small>7</small></span><span>二<small>8</small></span><span>三<small>9</small></span><span>四<small>10</small></span><span>五<small>11</small></span><span class="active">六<small>12</small></span><span>日<small>13</small></span></div>
-        <div class="chore-board" id="chore-board"></div>
-      </section>
+      <section class="view" id="chores-view" aria-labelledby="chores-title"><div class="page-head"><div><p class="date" id="week-label"></p><h1 id="chores-title">这周轮到谁</h1><p>本轮责任、完成时间和下一位都写清楚。</p></div><button class="primary-btn secondary-action" type="button" data-open="chore"><span>＋</span>加家务</button></div><div class="tabbar" role="tablist"><button class="active" type="button" data-chore-filter="current">本周</button><button type="button" data-chore-filter="mine">只看我的</button><button type="button" data-chore-filter="history">完成记录</button></div><div class="week-strip" id="week-strip"></div><div class="chore-board" id="chore-board"></div></section>
 
-      <section class="view" id="supplies-view" aria-labelledby="supplies-title">
-        <div class="page-head"><div><p class="date">共用品清单</p><h1 id="supplies-title">别等用完才发现</h1><p>缺什么就标一下，顺路的人带回来。</p></div><button class="primary-btn secondary-action" type="button" id="add-supply"><span aria-hidden="true">＋</span>加用品</button></div>
-        <div class="supply-summary"><div><b>2</b><span>需要补货</span></div><p>本月用品支出 <strong>¥196.80</strong><br><small>人均 ¥49.20</small></p></div>
-        <div class="supply-grid" id="supply-grid"></div>
-      </section>
+      <section class="view" id="supplies-view" aria-labelledby="supplies-title"><div class="page-head"><div><p class="date">共用品清单</p><h1 id="supplies-title">别等用完才发现</h1><p>从低库存、认领、购买到入账，一次收尾。</p></div><button class="primary-btn secondary-action" type="button" data-open="supply"><span>＋</span>加用品</button></div><section class="supply-summary"><div><b id="low-count">0</b><span>需要补货</span></div><div><b id="buying-count">0</b><span>正在采购</span></div><p>本月采购支出 <strong id="supply-spend">¥0.00</strong><br><small>只统计已关联费用</small></p></section><div class="supply-groups" id="supply-groups"></div></section>
+
+      <section class="view" id="more-view" aria-labelledby="more-title"><div class="page-head"><div><p class="date">房屋空间</p><h1 id="more-title">成员、规则与数据</h1><p>把共同约定留在家里，也把自己的数据带得走。</p></div><button class="primary-btn secondary-action" type="button" id="export-data"><span>↓</span>导出数据</button></div><div class="more-grid"><section class="panel more-section"><div class="section-head"><div><h2>室友成员</h2><p id="member-summary"></p></div><button class="small-btn" type="button" data-open="member">＋ 添加</button></div><div class="member-list" id="member-list"></div></section><section class="panel more-section"><div class="section-head"><div><h2>合租规则</h2><p>有版本、有生效日期、有确认记录</p></div></div><div class="rule-list" id="rule-list"></div></section><section class="panel more-section data-section"><div><h2>数据与恢复</h2><p>数据只保存在当前浏览器。导出文件可用于备份或作品演示。</p></div><div class="data-actions"><button class="small-btn" id="restore-data" type="button">恢复最近备份</button><button class="danger-btn" id="reset-data" type="button">恢复示例数据</button></div></section></div></section>
     </main>
-
-    <nav class="bottom-nav" aria-label="移动端主导航">
-      <button class="active" data-view="today" type="button"><span aria-hidden="true">⌂</span>今天</button>
-      <button data-view="expenses" type="button"><span aria-hidden="true">¥</span>费用</button>
-      <button data-view="chores" type="button"><span aria-hidden="true">✓</span>家务</button>
-      <button data-view="supplies" type="button"><span aria-hidden="true">◇</span>用品</button>
-    </nav>
+    <nav class="bottom-nav" aria-label="移动端主导航"><a class="active" href="#today" data-route="today"><span>⌂</span>今天</a><a href="#expenses" data-route="expenses"><span>¥</span>费用</a><a href="#chores" data-route="chores"><span>✓</span>家务</a><a href="#supplies" data-route="supplies"><span>◇</span>用品</a></nav>
   </div>
 
-  <dialog id="expense-dialog" aria-labelledby="dialog-title">
-    <form method="dialog" id="expense-form">
-      <div class="dialog-head"><div><p>共同费用</p><h2 id="dialog-title">记一笔</h2></div><button class="close-btn" value="cancel" aria-label="关闭" type="submit">×</button></div>
-      <label>花在什么上<input id="expense-name" name="name" required placeholder="例如：9 月电费" autocomplete="off" /></label>
-      <label>金额<div class="money-input"><span>¥</span><input id="expense-amount" name="amount" required type="number" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" /></div></label>
-      <fieldset><legend>谁付的钱</legend><div class="payer-options"><label><input type="radio" name="payer" value="林一" checked><span class="avatar me">林</span>林一</label><label><input type="radio" name="payer" value="周周"><span class="avatar a">周</span>周周</label><label><input type="radio" name="payer" value="许言"><span class="avatar b">许</span>许言</label><label><input type="radio" name="payer" value="阿哲"><span class="avatar c">阿</span>阿哲</label></div></fieldset>
-      <div class="split-note"><span aria-hidden="true">÷</span><p><b>4 人平均分摊</b><small>保存后自动计算每个人该付多少</small></p></div>
-      <div class="dialog-actions"><button value="cancel" class="ghost-btn" type="submit">取消</button><button class="primary-btn" value="default" type="submit">保存费用</button></div>
-    </form>
-  </dialog>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
-</body>
-</html>
+  <dialog id="expense-dialog" class="dialog-wide"><form method="dialog" id="expense-form" novalidate><div class="dialog-head"><div><p>共同费用</p><h2>记一笔</h2></div><button class="close-btn" value="cancel" aria-label="关闭">×</button></div><ol class="stepper"><li class="active">基本信息</li><li>参与成员</li><li>分摊方式</li><li>确认</li></ol><div class="form-error" id="expense-error" role="alert"></div><div class="form-step active" data-step="0"><label>用途 *<input id="expense-name" name="title" maxlength="40" required placeholder="例如：9 月电费"></label><div class="field-row"><label>金额 *<span class="money-input"><i>¥</i><input id="expense-amount" name="amount" required type="number" min="0.01" max="999999.99" step="0.01" placeholder="0.00"></span></label><label>分类<select name="category"><option>住房</option><option selected>账单</option><option>餐饮</option><option>共用品</option><option>交通</option><option>其他</option></select></label></div><label>备注<textarea name="note" rows="2" maxlength="120" placeholder="可选，补充分摊原因或缴费周期"></textarea></label></div><div class="form-step" data-step="1"><fieldset><legend>谁付的钱</legend><div class="member-options" id="payer-options"></div></fieldset><fieldset><legend>哪些人参与 *</legend><div class="member-options" id="participant-options"></div></fieldset></div><div class="form-step" data-step="2"><fieldset><legend>怎么分</legend><div class="split-modes"><label><input type="radio" name="splitMode" value="equal" checked><span>平均分</span></label><label><input type="radio" name="splitMode" value="amount"><span>按金额</span></label><label><input type="radio" name="splitMode" value="ratio"><span>按比例</span></label><label><input type="radio" name="splitMode" value="shares"><span>按份数</span></label></div></fieldset><div class="allocation" id="allocation"></div><div class="split-status" id="split-status"></div></div><div class="form-step" data-step="3"><div class="confirm-card" id="expense-confirm"></div></div><div class="dialog-actions"><button class="ghost-btn" type="button" id="expense-back">上一步</button><button class="primary-btn" type="button" id="expense-next">下一步</button><button class="primary-btn" value="save" id="expense-save">保存费用</button></div></form></dialog>
+
+  <dialog id="detail-dialog"><form method="dialog"><div class="dialog-head"><div><p>费用详情</p><h2 id="detail-title">费用</h2></div><button class="close-btn" value="close" aria-label="关闭">×</button></div><div id="detail-body"></div><div class="dialog-actions" id="detail-actions"></div></form></dialog>
+  <dialog id="chore-dialog"><form method="dialog" id="chore-form"><div class="dialog-head"><div><p>轮值任务</p><h2>添加家务</h2></div><button class="close-btn" value="cancel">×</button></div><label>任务名称<input name="title" required maxlength="30" placeholder="例如：擦厨房台面"></label><label>区域与说明<input name="area" required maxlength="50" placeholder="例如：厨房 · 台面与水槽"></label><div class="field-row"><label>本轮负责人<select name="assignee" id="chore-assignee"></select></label><label>频率<select name="cadence"><option>一次性</option><option selected>每周</option><option>每天</option><option>自定义周几</option></select></label></div><label>截止时间<input name="dueAt" type="datetime-local" required></label><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="primary-btn" value="save">创建任务</button></div></form></dialog>
+  <dialog id="supply-dialog"><form method="dialog" id="supply-form"><div class="dialog-head"><div><p>共用品</p><h2>添加用品</h2></div><button class="close-btn" value="cancel">×</button></div><label>用品名称<input name="name" required maxlength="24" placeholder="例如：抽纸"></label><div class="field-row"><label>存放位置<input name="location" required maxlength="24" placeholder="例如：客厅"></label><label>单位<input name="unit" required maxlength="8" placeholder="例如：包"></label></div><div class="field-row"><label>当前数量<input name="quantity" type="number" min="0" step="0.1" value="1" required></label><label>低库存阈值<input name="threshold" type="number" min="0" step="0.1" value="1" required></label></div><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="primary-btn" value="save">添加用品</button></div></form></dialog>
+  <dialog id="purchase-dialog"><form method="dialog" id="purchase-form"><div class="dialog-head"><div><p>确认采购</p><h2 id="purchase-title">用品已买到</h2></div><button class="close-btn" value="cancel">×</button></div><input type="hidden" name="supplyId"><label>购买金额<span class="money-input"><i>¥</i><input name="amount" required type="number" min="0.01" step="0.01" placeholder="0.00"></span></label><label class="check-line"><input name="createExpense" type="checkbox" checked> 同时记为全部室友的共同费用</label><div class="split-note"><span>↗</span><p><b>确认后自动入库</b><small>勾选共同费用时，系统会生成且只生成一笔费用。</small></p></div><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="primary-btn" value="save">确认入库</button></div></form></dialog>
+  <dialog id="member-dialog"><form method="dialog" id="member-form"><div class="dialog-head"><div><p>房屋成员</p><h2>添加室友</h2></div><button class="close-btn" value="cancel">×</button></div><label>室友昵称<input name="displayName" required maxlength="12" placeholder="例如：小满"></label><p class="helper">新成员只参与之后新建的费用和轮值，不会改写历史记录。</p><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="primary-btn" value="save">添加成员</button></div></form></dialog>
+  <dialog id="notifications-dialog"><form method="dialog"><div class="dialog-head"><div><p>行动提醒</p><h2>通知</h2></div><button class="close-btn" value="close">×</button></div><div class="notification-list" id="notification-list"></div><div class="dialog-actions"><button class="small-btn" type="button" id="read-all">全部已读</button></div></form></dialog>
+  <dialog id="confirm-dialog"><form method="dialog"><div class="dialog-head"><div><p>请确认影响</p><h2>确认操作</h2></div><button class="close-btn" value="cancel">×</button></div><p id="confirm-copy"></p><div class="dialog-actions"><button class="ghost-btn" value="cancel">取消</button><button class="danger-btn" value="confirm" id="confirm-action">确认</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-copy"></span><button type="button" id="toast-undo">撤销</button></div>
+  <script type="module" src="app.js"></script>
+</body></html>
