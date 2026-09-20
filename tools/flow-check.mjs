@@ -4,6 +4,7 @@ import path from "node:path";
 import { chromium } from "playwright-core";
 
 const outputDir = path.resolve("artifacts/qa");
+const baseUrl = process.env.QA_BASE_URL ?? "http://localhost:3100";
 await fs.mkdir(outputDir, { recursive: true });
 
 const browser = await chromium.launch({
@@ -27,7 +28,7 @@ await page.addInitScript(() => {
     sessionStorage.setItem("daziwu:qa-initialized", "true");
   }
 });
-await page.goto("http://localhost:3100", { waitUntil: "networkidle" });
+await page.goto(baseUrl, { waitUntil: "networkidle" });
 await page.getByRole("button", { name: "直接进入梧桐里 3B" }).click();
 await assertVisibleText(page, "今日待办");
 

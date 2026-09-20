@@ -3,6 +3,7 @@ import path from "node:path";
 import { chromium } from "playwright-core";
 
 const outputDir = path.resolve("artifacts/qa");
+const baseUrl = process.env.QA_BASE_URL ?? "http://localhost:3100";
 await fs.mkdir(outputDir, { recursive: true });
 
 const browser = await chromium.launch({
@@ -42,7 +43,7 @@ for (const check of checks) {
   page.on("requestfailed", (request) => {
     failedRequests.push(`${request.method()} ${request.url()} — ${request.failure()?.errorText ?? "unknown"}`);
   });
-  await page.goto("http://localhost:3100", { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.body.innerText.trim().length > 20);
   const overflow = await page.evaluate(() => ({
     horizontal: document.documentElement.scrollWidth > document.documentElement.clientWidth,

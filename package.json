@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm --filter @daziwu/web dev",
     "build": "pnpm --filter @daziwu/web build",
+    "build:pages": "node tools/build-pages.mjs",
     "lint": "pnpm --filter @daziwu/web lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",

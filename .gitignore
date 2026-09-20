@@ -8,4 +8,5 @@ coverage
 *.log
 .DS_Store
 artifacts/qa/
+artifacts/pages-preview-root/
 *.tsbuildinfo

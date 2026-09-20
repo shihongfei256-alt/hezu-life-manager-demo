@@ -47,6 +47,14 @@ pnpm qa:flow
 
 `qa:flow` 已覆盖访客进入、整数分分摊、新增费用、按成员结算、家务自动轮值、认领采购、入库自动记账、刷新持久化、智能确认后记账和通知偏好。
 
+## GitHub Pages 发布
+
+运行 `pnpm build:pages` 会生成适配仓库子路径 `/hezu-life-manager-demo/` 的静态站点，并在 `apps/web/out` 中写入 `.nojekyll`。仓库分支约定：
+
+- `main`：GitHub Pages 静态发布产物
+- `v2`：V2 完整源代码
+- `v1`：原 V1 备份
+
 ## 产品与技术文档
 
 本目录包含：

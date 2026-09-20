@@ -1,5 +1,6 @@
 const CACHE_NAME = "daziwu-v2-shell-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/brand-mark.svg"];
+const APP_ROOT = new URL("./", self.location.href).href;
+const APP_SHELL = [APP_ROOT, new URL("manifest.webmanifest", APP_ROOT).href, new URL("brand-mark.svg", APP_ROOT).href];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -24,6 +25,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/"))),
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match(APP_ROOT))),
   );
 });
