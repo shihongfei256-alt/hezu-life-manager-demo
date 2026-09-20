@@ -1,0 +1,17 @@
+{
+  "name": "daziwu-v2",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "dev": "pnpm --filter @daziwu/web dev",
+    "build": "pnpm --filter @daziwu/web build",
+    "lint": "pnpm --filter @daziwu/web lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "qa:visual": "node tools/visual-check.mjs",
+    "qa:flow": "node tools/flow-check.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.63.0"
+  }
+}
